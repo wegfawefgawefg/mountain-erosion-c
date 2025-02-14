@@ -3,10 +3,10 @@ layout (location = 0) in vec3 aPos;
 
 uniform mat4 mvp;
 
-out float height;  // Output Y for height-based coloring
+flat out float height;  // flat qualifier disables interpolation
 
 void main()
 {
-    height = aPos.y;  // Use Y instead of Z for coloring
+    height = aPos.y;
     gl_Position = mvp * vec4(aPos, 1.0);
 }

@@ -41,7 +41,7 @@ static void mat4_perspective(float *m, float fov, float aspect, float near, floa
     m[15] = 0.0f;
 }
 
-// Multiply two 4x4 matrices: result = a * b.
+// Multiply two 4x4 matrices: result = a * b, with matrices in column-major order.
 static void mat4_mul(float *result, const float *a, const float *b)
 {
     float temp[16];
@@ -49,10 +49,10 @@ static void mat4_mul(float *result, const float *a, const float *b)
     {
         for (int col = 0; col < 4; col++)
         {
-            temp[row * 4 + col] = 0.0f;
+            temp[col * 4 + row] = 0.0f;
             for (int i = 0; i < 4; i++)
             {
-                temp[row * 4 + col] += a[row * 4 + i] * b[i * 4 + col];
+                temp[col * 4 + row] += a[i * 4 + row] * b[col * 4 + i];
             }
         }
     }
@@ -75,8 +75,8 @@ static void mat4_rotate_y(float *m, float angle)
 {
     mat4_identity(m);
     m[0] = cosf(angle);
-    m[2] = sinf(angle);
-    m[8] = -sinf(angle);
+    m[2] = -sinf(angle);
+    m[8] = sinf(angle);
     m[10] = cosf(angle);
 }
 

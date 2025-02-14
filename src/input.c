@@ -46,6 +46,18 @@ void process_input(struct State *state)
         state->orbit_angle += orbitSpeed;
     }
 
+    // set height with space and shift
+    if (keystate[SDL_SCANCODE_SPACE])
+    {
+        state->height += zoomSpeed;
+    }
+    if (keystate[SDL_SCANCODE_LSHIFT])
+    {
+        state->height -= zoomSpeed;
+        if (state->height < 1.0f)
+            state->height = 1.0f;
+    }
+
     // Debug print
     printf("Camera dist: %.2f, orbit angle: %.2f\n", state->dist, state->orbit_angle);
 }
