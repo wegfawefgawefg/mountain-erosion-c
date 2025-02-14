@@ -1,0 +1,3 @@
+/home/vega/Coding/Graphics/mountain-erosion-c/build/CMakeFiles/rebuild_cache.dir
+/home/vega/Coding/Graphics/mountain-erosion-c/build/CMakeFiles/edit_cache.dir
+/home/vega/Coding/Graphics/mountain-erosion-c/build/CMakeFiles/game.dir

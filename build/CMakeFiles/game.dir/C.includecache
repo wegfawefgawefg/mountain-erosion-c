@@ -1,0 +1,46 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/vega/Coding/Graphics/mountain-erosion-c/src/input.h
+state.h
+/home/vega/Coding/Graphics/mountain-erosion-c/src/state.h
+
+/home/vega/Coding/Graphics/mountain-erosion-c/src/main.c
+SDL2/SDL.h
+-
+SDL2/SDL_opengl.h
+-
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+state.h
+/home/vega/Coding/Graphics/mountain-erosion-c/src/state.h
+shader_utils.h
+/home/vega/Coding/Graphics/mountain-erosion-c/src/shader_utils.h
+input.h
+/home/vega/Coding/Graphics/mountain-erosion-c/src/input.h
+matrix.h
+/home/vega/Coding/Graphics/mountain-erosion-c/src/matrix.h
+
+/home/vega/Coding/Graphics/mountain-erosion-c/src/matrix.h
+math.h
+-
+
+/home/vega/Coding/Graphics/mountain-erosion-c/src/shader_utils.h
+SDL2/SDL_opengl.h
+-
+SDL2/SDL.h
+-
+
+/home/vega/Coding/Graphics/mountain-erosion-c/src/state.h
+stdbool.h
+-
+
