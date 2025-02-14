@@ -7,7 +7,7 @@
 #include "state.h"
 #include "shader_utils.h"
 #include "input.h"
-#include "matrix.h" // matrix math helpers
+#include "matrix.h" // Matrix math helpers
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -24,21 +24,15 @@ int main(int argc, char *argv[])
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_Window *window = SDL_CreateWindow(
-        "Erosion Simulation - Heightmap (Static Grid, Movable Camera)",
+        "Erosion Simulation - Camera Simplified",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         WIDTH, HEIGHT,
         SDL_WINDOW_OPENGL);
-
-    // Enable relative mouse mode for mouse look.
-    SDL_SetRelativeMouseMode(SDL_TRUE);
 
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     glViewport(0, 0, WIDTH, HEIGHT);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glEnable(GL_DEPTH_TEST);
-    // glDisable(GL_CULL_FACE);
-    // WIREFRAME MODE
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     GLuint shader_program = createShaderProgram();
     if (shader_program == 0)
@@ -49,25 +43,15 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Set up the state with a sine-wave heightmap.
     struct State state;
     state.quit = false;
     initializeGrid(&state);
 
-    // Start the camera further back and above the grid.
-    state.camX = 0.0f;
-    state.camY = 0.0f;
-    state.camZ = 0.0f;
-    // // Set orientation to look down towards the grid center.
-    // // For example, yaw = -45° and pitch = -45°.
-    // state.yaw = -45.0f * (M_PI / 180.0f);
-    // state.pitch = -45.0f * (M_PI / 180.0f);
+    // Set camera orbit parameters
+    state.orbit_angle = 0.0f;
+    state.dist = 5.0f;
+    state.height = 1.0f;
 
-    // LOOK STRAIGHT AHEAD
-    state.yaw = 0.0f;
-    state.pitch = 0.0f;
-
-    // Generate mesh vertices from the grid.
     int numCells = (GRID_SIZE - 1) * (GRID_SIZE - 1);
     int vertexCount = numCells * 6; // 6 vertices per cell (2 triangles)
     float *vertices = malloc(sizeof(float) * vertexCount * 3);
@@ -78,7 +62,6 @@ int main(int argc, char *argv[])
     }
     generateMesh(vertices, &state);
 
-    // Set up VAO/VBO.
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -89,41 +72,30 @@ int main(int argc, char *argv[])
     glEnableVertexAttribArray(0);
     free(vertices);
 
-    // Projection matrix: 45° fov, proper aspect ratio, near/far planes.
+    // Use a 45° FOV and typical near/far values.
     float proj[16];
-    mat4_perspective(proj, 45.0f * (M_PI / 180.0f), (float)WIDTH / HEIGHT, 0.1, 100.0f);
+    mat4_perspective(proj, 45.0f * (M_PI / 180.0f), (float)WIDTH / HEIGHT, 1.0f, 100.0f);
 
-    // Use an identity model matrix (grid is static).
     float model[16];
     mat4_identity(model);
 
-    // Main render loop.
     while (!state.quit)
     {
         process_input(&state);
 
-        // Compute camera forward vector from yaw and pitch.
-        float forward[3] = {
-            cosf(state.pitch) * sinf(state.yaw),
-            sinf(state.pitch),
-            cosf(state.pitch) * cosf(state.yaw)};
+        // Compute camera position from orbit parameters.
+        float eye[3];
+        eye[0] = sinf(state.orbit_angle) * state.dist;
+        eye[1] = state.height;
+        eye[2] = cosf(state.orbit_angle) * state.dist;
 
-        // Camera target = position + forward.
-        float target[3] = {
-            state.camX + forward[0],
-            state.camY + forward[1],
-            state.camZ + forward[2]};
+        // Always look at the center of the mountain.
+        float target[3] = {0.0f, 0.5f, 0.0f};
+        float up[3] = {0.0f, 1.0f, 0.0f};
 
-        // Use world up as (0,1,0).
-        float up[3] = {0.0f, 1.0f, 1.0f};
-
-        // Compute view matrix using lookAt.
         float view[16];
-        mat4_lookAt(view, (float[]){state.camX, state.camY, state.camZ},
-                    target,
-                    up);
+        mat4_lookAt(view, eye, target, up);
 
-        // Compute final MVP: MVP = proj * view * model.
         float pv[16];
         mat4_mul(pv, proj, view);
         float mvp[16];
@@ -132,7 +104,8 @@ int main(int argc, char *argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shader_program);
         GLint mvp_location = glGetUniformLocation(shader_program, "mvp");
-        glUniformMatrix4fv(mvp_location, 1, GL_TRUE, mvp);
+        // Use GL_FALSE since our matrices are in column-major order.
+        glUniformMatrix4fv(mvp_location, 1, GL_FALSE, mvp);
 
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, vertexCount);
@@ -140,7 +113,6 @@ int main(int argc, char *argv[])
         SDL_GL_SwapWindow(window);
     }
 
-    // Cleanup.
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteProgram(shader_program);

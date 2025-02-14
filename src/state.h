@@ -8,12 +8,12 @@
 struct State
 {
     bool quit;
-    float grid[GRID_SIZE][GRID_SIZE]; // 64x64 grid of height values
+    float grid[GRID_SIZE][GRID_SIZE];
 
-    // Camera position.
-    float camX, camY, camZ;
-    // Camera orientation (in radians): yaw (left/right), pitch (up/down).
-    float yaw, pitch;
+    // Camera orbit parameters
+    float orbit_angle; // in radians
+    float dist;        // distance from mountain center
+    float height;      // camera height (Y)
 };
 
 void initializeGrid(struct State *state);
