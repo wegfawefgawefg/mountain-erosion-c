@@ -89,4 +89,49 @@ static void mat4_translate(float *m, float x, float y, float z)
     m[14] = z;
 }
 
+static void mat4_lookAt(float *m, const float *eye, const float *center, const float *up)
+{
+    float f[3] = {center[0] - eye[0], center[1] - eye[1], center[2] - eye[2]};
+    // Normalize f.
+    float fMag = sqrtf(f[0] * f[0] + f[1] * f[1] + f[2] * f[2]);
+    f[0] /= fMag;
+    f[1] /= fMag;
+    f[2] /= fMag;
+
+    float s[3] = {
+        f[1] * up[2] - f[2] * up[1],
+        f[2] * up[0] - f[0] * up[2],
+        f[0] * up[1] - f[1] * up[0]};
+    float sMag = sqrtf(s[0] * s[0] + s[1] * s[1] + s[2] * s[2]);
+    s[0] /= sMag;
+    s[1] /= sMag;
+    s[2] /= sMag;
+
+    float u[3] = {
+        s[1] * f[2] - s[2] * f[1],
+        s[2] * f[0] - s[0] * f[2],
+        s[0] * f[1] - s[1] * f[0]};
+
+    // Column-major order.
+    m[0] = s[0];
+    m[1] = u[0];
+    m[2] = -f[0];
+    m[3] = 0.0f;
+
+    m[4] = s[1];
+    m[5] = u[1];
+    m[6] = -f[1];
+    m[7] = 0.0f;
+
+    m[8] = s[2];
+    m[9] = u[2];
+    m[10] = -f[2];
+    m[11] = 0.0f;
+
+    m[12] = -(s[0] * eye[0] + s[1] * eye[1] + s[2] * eye[2]);
+    m[13] = -(u[0] * eye[0] + u[1] * eye[1] + u[2] * eye[2]);
+    m[14] = (f[0] * eye[0] + f[1] * eye[1] + f[2] * eye[2]);
+    m[15] = 1.0f;
+}
+
 #endif // MATRIX_H

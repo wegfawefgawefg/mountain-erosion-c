@@ -25,10 +25,12 @@
 ///// filename: ./src/input.c
 #include "input.h"
 #include <SDL2/SDL.h>
+#include <stdio.h>
 
 void process_input(struct State *state)
 {
     SDL_Event event;
+    const float speed = 0.1f; // Adjust movement speed as needed.
     while (SDL_PollEvent(&event))
     {
         switch (event.type)
@@ -41,6 +43,32 @@ void process_input(struct State *state)
             {
                 state->quit = true;
             }
+            else if (event.key.keysym.sym == SDLK_w)
+            {
+                state->camZ -= speed; // Move forward.
+            }
+            else if (event.key.keysym.sym == SDLK_s)
+            {
+                state->camZ += speed; // Move backward.
+            }
+            else if (event.key.keysym.sym == SDLK_a)
+            {
+                state->camX -= speed; // Move left.
+            }
+            else if (event.key.keysym.sym == SDLK_d)
+            {
+                state->camX += speed; // Move right.
+            }
+            else if (event.key.keysym.sym == SDLK_q)
+            {
+                state->camY -= speed; // Move down.
+            }
+            else if (event.key.keysym.sym == SDLK_e)
+            {
+                state->camY += speed; // Move up.
+            }
+            // Print camera position after any key movement.
+            printf("Camera position: (%.2f, %.2f, %.2f)\n", state->camX, state->camY, state->camZ);
             break;
         }
     }
@@ -78,7 +106,7 @@ int main(int argc, char *argv[])
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_Window *window = SDL_CreateWindow(
-        "Erosion Simulation - Heightmap (Rotating Camera)",
+        "Erosion Simulation - Heightmap (Camera Movement)",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         WIDTH, HEIGHT,
         SDL_WINDOW_OPENGL);
@@ -99,10 +127,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Set up the state with a sine-wave heightmap.
+    // Set up the state with a sine-wave heightmap and initial camera position.
     struct State state;
     state.quit = false;
     initializeGrid(&state);
+    // Initialize camera position. (You can adjust these as needed.)
+    state.camX = 0.0f;
+    state.camY = 0.0f;
+    state.camZ = 3.0f;
 
     // Generate mesh vertices from the grid.
     int numCells = (GRID_SIZE - 1) * (GRID_SIZE - 1);
@@ -130,11 +162,6 @@ int main(int argc, char *argv[])
     // Projection matrix: 45° fov, proper aspect ratio, near/far planes.
     float proj[16];
     mat4_perspective(proj, 45.0f * (3.14159f / 180.0f), (float)WIDTH / HEIGHT, 1.0f, 100.0f);
-
-    // View matrix: translate the world so it appears in front of the camera.
-    // Since the camera is at (0,0,0) and looks down -Z, we move the scene to Z = -3.
-    float view[16];
-    mat4_translate(view, 0.0f, 20.0f, -3.0f);
 
     // For the model matrix we combine:
     //  - a constant rotation around X to tilt the mesh (~ -34°)
@@ -167,6 +194,11 @@ int main(int argc, char *argv[])
         // Combine the rotations: model = modelY * modelX.
         float model[16];
         mat4_mul(model, modelY, modelX);
+
+        // Compute the view matrix using the camera position.
+        // Note: view matrix = translate(-camX, -camY, -camZ).
+        float view[16];
+        mat4_translate(view, -state.camX, -state.camY, -state.camZ);
 
         // Compute the final MVP: MVP = proj * view * model.
         float pv[16];
@@ -507,6 +539,9 @@ struct State
 {
     bool quit;
     float grid[GRID_SIZE][GRID_SIZE]; // 64x64 grid of height values
+
+    // New camera position fields.
+    float camX, camY, camZ;
 };
 
 void initializeGrid(struct State *state);

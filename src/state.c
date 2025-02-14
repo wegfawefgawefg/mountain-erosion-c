@@ -1,7 +1,7 @@
 #include "state.h"
 #include <math.h>
 
-// Fill the grid with a sine-wave heightmap.
+// Fill the grid with a sine-wave heightmap normalized to [0,0.1].
 void initializeGrid(struct State *state)
 {
     for (int i = 0; i < GRID_SIZE; i++)
@@ -10,13 +10,16 @@ void initializeGrid(struct State *state)
         {
             float x = (float)i / (GRID_SIZE - 1);
             float y = (float)j / (GRID_SIZE - 1);
-            // A sine and cosine combination gives a wavy heightmap.
-            state->grid[i][j] = 0.5f * sinf(x * 3.1415f * 4) * cosf(y * 3.1415f * 4) + 0.5f;
+            // Scale the sine/cosine to produce heights between 0.0 and 0.1.
+            // state->grid[i][j] = 0.05f * sinf(x * 3.1415f * 4) * cosf(y * 3.1415f * 4) + 0.05f;
+            // SET ALL THE HEIGHTS TO 0.0 FOR DEBUG
+            state->grid[i][j] = 0.0f;
         }
     }
 }
 
 // Generate a mesh (two triangles per grid cell) from the heightmap.
+// The grid vertices are already centered in x and y [-1,1].
 void generateMesh(float *vertices, struct State *state)
 {
     int vertex = 0;
@@ -24,7 +27,6 @@ void generateMesh(float *vertices, struct State *state)
     {
         for (int j = 0; j < GRID_SIZE - 1; j++)
         {
-            // Convert grid indices to clip-space positions in x and y.
             float x0 = (float)i / (GRID_SIZE - 1) * 2 - 1;
             float y0 = (float)j / (GRID_SIZE - 1) * 2 - 1;
             float x1 = (float)(i + 1) / (GRID_SIZE - 1) * 2 - 1;
